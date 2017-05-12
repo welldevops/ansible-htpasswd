@@ -3,7 +3,6 @@
   hosts: all
 
   vars:
-    path: /root/htpasswd
     owner: root
     group: root
     mode: 0600
@@ -36,7 +35,7 @@
 
     - name: add user to htpasswd for host
       htpasswd:
-        path: "{{ path }}"
+        path: "{{ htpath }}"
         name: "{{ username }}"
         password: "{{ passwd }}"
         owner: "{{ owner }}"
@@ -46,7 +45,7 @@
 
     - name: del user from htpasswd for host
       htpasswd:
-        path: "{{ path }}"
+        path: "{{ htpath }}"
         name: "{{ username }}"
         state: absent
       when: htaction == 'del'
