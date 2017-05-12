@@ -1,0 +1,57 @@
+---
+- name: htpasswd management
+  hosts: all
+
+  vars:
+    path: /root/htpasswd
+    owner: root
+    group: root
+    mode: 0600
+
+  vars_prompt:
+    - name: htaction
+      prompt: 'add or del user?'
+      private: no
+      default: 0
+
+    - name: username
+      prompt: 'username'
+      private: no
+
+    - name: passwd
+      prompt: 'password'
+      private: no
+
+  tasks:
+    - name: add additional repositories
+      yum: name={{ item }} state=present
+      with_items:
+      - http://mirror.nl.leaseweb.net/epel/7/x86_64/e/epel-release-7-9.noarch.rpm
+      - http://mirror.nl.leaseweb.net/dag/redhat/el7/en/x86_64/dag/RPMS/rpmforge-release-0.5.3-1.el7.rf.x86_64.rpm
+
+    - name: install python-passlib for htpasswd management
+      yum:
+        name: python-passlib
+        state: present
+
+    - name: add user to htpasswd for host
+      htpasswd:
+        path: "{{ path }}"
+        name: "{{ username }}"
+        password: "{{ passwd }}"
+        owner: "{{ owner }}"
+        group: "{{ group }}"
+        mode: "{{ mode }}"
+      when: htaction == 'add'
+
+    - name: del user from htpasswd for host
+      htpasswd:
+        path: "{{ path }}"
+        name: "{{ username }}"
+        state: absent
+      when: htaction == 'del'
+
+    - name: restart nginx service
+      service:
+        name: nginx
+        state: restarted
